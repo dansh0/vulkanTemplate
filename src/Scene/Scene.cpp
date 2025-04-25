@@ -1,21 +1,22 @@
 #include "Scene.h"
-#include "../Geometry/Sphere.h" // Include the sphere generation function
-#include <algorithm>           // For std::min
+#include <iostream>
 
 /**
  * @brief Initializes the scene. Generates the sphere mesh and sets the initial radius.
  *
  * Keywords: Scene Initialization, Mesh Generation
  */
-void Scene::init() {
-    // --- Generate Sphere Mesh ---
-    float sphereRadius = 0.5f;
-    int sphereSectors = 24;
-    int sphereStacks = 12;
-    // IMPORTANT: Update the physics radius to match the generated geometry
-    ballRadius = sphereRadius;
-    // Generate the mesh data directly into the Scene's member variables
-    generateSphere(sphereRadius, sphereSectors, sphereStacks, vertices, indices);
+void Scene::init(const std::string& modelPath) {
+    // Load the model from OBJ file
+    if (!ObjLoader::loadObj(modelPath, vertices, indices)) {
+        std::cerr << "Failed to load model: " << modelPath << std::endl;
+        // You might want to handle this error more gracefully
+        throw std::runtime_error("Failed to load model");
+    }
+
+    // Initialize physics state
+    ballPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+    ballVelocity = glm::vec3(1.5f, 2.5f, -1.8f);
 }
 
 /**
@@ -42,24 +43,15 @@ void Scene::updatePhysics(float deltaTime) {
     // Basic Euler integration: new_position = old_position + velocity * time_step
     ballPosition += ballVelocity * deltaTime;
 
-    // --- Collision Detection & Response ---
-    // Check collision against each axis (X, Y, Z) of the room boundaries
-    for (int i = 0; i < 3; ++i) { // Iterate axes 0=x, 1=y, 2=z
-
-        // Check collision with the positive wall (e.g., +X wall)
-        if (ballPosition[i] + ballRadius > roomBounds[i]) {
-            // 1. Correct position: Place ball exactly at the boundary
+    // Check for collisions with room boundaries
+    for (int i = 0; i < 3; i++) {
+        // Check if we've hit a wall
+        if (ballPosition[i] > roomBounds[i] - ballRadius) {
             ballPosition[i] = roomBounds[i] - ballRadius;
-            // 2. Reflect velocity: Reverse the velocity component along this axis
-            //    and dampen it by the coefficient of restitution.
-            ballVelocity[i] *= -restitution;
-        }
-        // Check collision with the negative wall (e.g., -X wall)
-        else if (ballPosition[i] - ballRadius < -roomBounds[i]) {
-            // 1. Correct position: Place ball exactly at the boundary
+            ballVelocity[i] = -ballVelocity[i] * restitution;
+        } else if (ballPosition[i] < -roomBounds[i] + ballRadius) {
             ballPosition[i] = -roomBounds[i] + ballRadius;
-            // 2. Reflect velocity: Reverse and dampen.
-            ballVelocity[i] *= -restitution;
+            ballVelocity[i] = -ballVelocity[i] * restitution;
         }
     }
 

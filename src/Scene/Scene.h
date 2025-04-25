@@ -1,29 +1,32 @@
 #pragma once
 
 #include "../Geometry/Mesh.h" // Include Vertex definition
+#include "../Geometry/ObjLoader.h" // Include OBJ loader
 #include <glm/glm.hpp>
 #include <vector>
 #include <cstdint> // For uint32_t
+#include <string>
 
 /**
  * @brief Manages the scene objects, physics, and geometry data.
  *
  * This class is responsible for:
- * - Holding the geometry data (vertices, indices) for scene objects (currently just the ball).
- * - Storing and updating the physics state of objects (position, velocity).
- * - Defining the boundaries of the scene.
- * - Providing methods to initialize, update, and retrieve data needed for rendering.
+ * - Loading and managing 3D models from OBJ files
+ * - Storing and updating the physics state of objects (position, velocity)
+ * - Defining the boundaries of the scene
+ * - Providing methods to initialize, update, and retrieve data needed for rendering
  *
- * Keywords: Scene Management, Game State, Physics Simulation, Geometry Storage
+ * Keywords: Scene Management, Game State, Physics Simulation, Model Loading
  */
 class Scene {
 public:
     /**
-     * @brief Initializes the scene, generating geometry and setting initial physics state.
+     * @brief Initializes the scene, loading models and setting initial physics state.
+     * @param modelPath Path to the OBJ file to load
      *
      * Should be called once after the Scene object is created.
      */
-    void init();
+    void init(const std::string& modelPath);
 
     /**
      * @brief Updates the physics state of the scene based on elapsed time.
@@ -34,8 +37,8 @@ public:
     void update(float deltaTime);
 
     /**
-     * @brief Gets the current position of the bouncing ball.
-     * @return glm::vec3 representing the ball's center position.
+     * @brief Gets the current position of the bouncing object.
+     * @return glm::vec3 representing the object's center position.
      */
     glm::vec3 getBallPosition() const;
 
@@ -57,8 +60,8 @@ public:
 
 private:
     // --- Geometry Data ---
-    std::vector<Vertex> vertices;   // Vertex data for the ball mesh
-    std::vector<uint32_t> indices;  // Index data for the ball mesh
+    std::vector<Vertex> vertices;   // Vertex data for the model
+    std::vector<uint32_t> indices;  // Index data for the model
 
     // --- Physics State ---
     glm::vec3 ballPosition = glm::vec3(0.0f, 0.0f, 0.0f);       // Current position
@@ -68,7 +71,7 @@ private:
     float restitution = 0.78f;                                // Coefficient of restitution (bounciness)
 
     /**
-     * @brief Updates the ball's physics state, including position and velocity based on collisions.
+     * @brief Updates the object's physics state, including position and velocity based on collisions.
      * @param deltaTime Time step for the physics update.
      *
      * Internal helper function called by update().

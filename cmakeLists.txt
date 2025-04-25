@@ -102,6 +102,7 @@ set(SOURCE_FILES
     src/Scene/Scene.cpp
     src/Geometry/Sphere.cpp
     src/Window/Window.cpp
+    libraries/tiny_obj_loader/tiny_obj_loader.cc  # Add tiny_obj_loader implementation
 )
 
 # --- Executable Target ---
@@ -113,6 +114,7 @@ add_dependencies(BouncingBall Shaders)
 # --- Include Directories ---
 target_include_directories(BouncingBall PRIVATE
     src # Project's own headers
+    libraries # External libraries at root level
     "${GLFW_INSTALL_DIR}/include"  # Add GLFW include directory
     "${GLM_INSTALL_DIR}"           # Add GLM root include directory
     # Vulkan headers usually handled by linking Vulkan::Vulkan

@@ -13,13 +13,14 @@
 /**
  * @brief Represents a single vertex in a 3D mesh.
  *
- * Contains position and color information. Also provides static methods
+ * Contains position, normal, and color information. Also provides static methods
  * to describe its layout to Vulkan pipelines.
  *
  * Keywords: Vertex Data, Vertex Input, Vertex Attribute, Vertex Binding
  */
 struct Vertex {
     glm::vec3 pos;   // Position in 3D space
+    glm::vec3 normal; // Normal angle
     glm::vec3 color; // Color associated with the vertex
 
     /**
@@ -58,8 +59,8 @@ struct Vertex {
      *
      * Keywords: VkVertexInputAttributeDescription, Vertex Attribute Format, Shader Location, Vertex Offset
      */
-    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
         // Position Attribute (location = 0)
         attributeDescriptions[0].binding = 0;
@@ -67,11 +68,18 @@ struct Vertex {
         attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT; // vec3 (3 * 32-bit float)
         attributeDescriptions[0].offset = offsetof(Vertex, pos); // Offset of the 'pos' member
 
-        // Color Attribute (location = 1)
+        // Normal Attribute (location = 1)
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1; // layout(location = 1) in shader
         attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT; // vec3 (3 * 32-bit float)
-        attributeDescriptions[1].offset = offsetof(Vertex, color); // Offset of the 'color' member
+        attributeDescriptions[1].offset = offsetof(Vertex, normal); // Offset of the 'normal' member
+
+
+        // Color Attribute (location = 2)
+        attributeDescriptions[2].binding = 0;
+        attributeDescriptions[2].location = 2; // layout(location = 2) in shader
+        attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT; // vec3 (3 * 32-bit float)
+        attributeDescriptions[2].offset = offsetof(Vertex, color); // Offset of the 'color' member
 
         return attributeDescriptions;
     }
