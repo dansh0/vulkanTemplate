@@ -6,9 +6,9 @@
  *
  * Keywords: Scene Initialization, Mesh Generation
  */
-void Scene::init(const std::string& modelPath) {
+void Scene::init(const std::string& modelPath, const float scale) {
     // Load the model from OBJ file
-    if (!ObjLoader::loadObj(modelPath, vertices, indices)) {
+    if (!ObjLoader::loadObj(modelPath, scale, vertices, indices)) {
         std::cerr << "Failed to load model: " << modelPath << std::endl;
         // You might want to handle this error more gracefully
         throw std::runtime_error("Failed to load model");
@@ -16,7 +16,7 @@ void Scene::init(const std::string& modelPath) {
 
     // Initialize physics state
     ballPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-    ballVelocity = glm::vec3(1.5f, 2.5f, -1.8f);
+    ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
 }
 
 /**

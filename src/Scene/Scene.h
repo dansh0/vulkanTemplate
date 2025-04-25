@@ -23,10 +23,10 @@ public:
     /**
      * @brief Initializes the scene, loading models and setting initial physics state.
      * @param modelPath Path to the OBJ file to load
-     *
+     * @param scale Scale factor for the model
      * Should be called once after the Scene object is created.
      */
-    void init(const std::string& modelPath);
+    void init(const std::string& modelPath, const float scale);
 
     /**
      * @brief Updates the physics state of the scene based on elapsed time.

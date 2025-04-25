@@ -61,7 +61,7 @@ private:
      * @brief Initializes the scene logic and data.
      */
     void initScene() {
-        scene.init("models/diamond.obj"); // Default path, can be changed
+        scene.init("models/diamond.obj", 0.05f); // Default path, can be changed
         std::cout << "Scene Initialized." << std::endl;
     }
 

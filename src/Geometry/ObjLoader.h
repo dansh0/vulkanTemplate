@@ -23,6 +23,7 @@ public:
      * @return true if loading was successful, false otherwise
      */
     static bool loadObj(const std::string& filename, 
+                       const float scale,
                        std::vector<Vertex>& vertices, 
                        std::vector<uint32_t>& indices) {
         tinyobj::attrib_t attrib;
@@ -50,9 +51,9 @@ public:
 
                 // Position
                 vertex.pos = {
-                    attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]
+                    attrib.vertices[3 * index.vertex_index + 0] * scale,
+                    attrib.vertices[3 * index.vertex_index + 1] * scale,
+                    attrib.vertices[3 * index.vertex_index + 2] * scale
                 };
 
                 // Normal (if available)
