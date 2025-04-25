@@ -89,7 +89,6 @@ public:
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData); // pUserData can be used to pass `this` pointer if needed
 
-
 private:
     // --- Core Vulkan Objects ---
     GLFWwindow* window; // Pointer to the application window
@@ -180,7 +179,6 @@ private:
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     void cleanupSwapChain();
     void recreateSwapChain(const Scene& scene); // Needs scene data again for buffers
-
 
     // --- Private Helper Functions ---
     // (Device suitability checks are closely tied to engine state)

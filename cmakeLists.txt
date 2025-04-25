@@ -101,6 +101,7 @@ set(SOURCE_FILES
     src/VulkanEngine/VulkanUtils.cpp
     src/Scene/Scene.cpp
     src/Geometry/Sphere.cpp
+    src/Window/Window.cpp
 )
 
 # --- Executable Target ---

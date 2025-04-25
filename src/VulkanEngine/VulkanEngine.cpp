@@ -5,6 +5,8 @@
 #include <cstring>    // For strcmp
 #include <algorithm>  // For std::clamp
 #include <iostream>   // For setup messages / errors
+#include <fstream>    // For file operations
+#include <chrono>     // For time-based operations
 
 
 // --- Constructor ---

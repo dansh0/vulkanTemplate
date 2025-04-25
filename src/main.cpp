@@ -11,13 +11,10 @@
 // Project Includes
 #include "VulkanEngine/VulkanEngine.h" // The core Vulkan logic wrapper
 #include "Scene/Scene.h"              // The scene logic and data
-
+#include "Window/Window.h"            // Window management
 
 // --- Constants ---
-const uint32_t INITIAL_WIDTH = 800;
-const uint32_t INITIAL_HEIGHT = 600;
 const std::string APP_NAME = "Bouncing Ball (Refactored)";
-
 
 /**
  * @brief Main application class orchestrating the window, engine, and scene.
@@ -41,7 +38,7 @@ public:
     }
 
 private:
-    GLFWwindow* window = nullptr;         // GLFW window handle
+    Window window{APP_NAME};
     VulkanEngine* vulkanEngine = nullptr; // Pointer to the Vulkan engine instance
     Scene scene;                          // The scene object instance
 
@@ -55,25 +52,9 @@ private:
      * Sets up user pointers and callbacks for resizing.
      */
     void initWindow() {
-        glfwInit();                                   // Initialize GLFW library
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Tell GLFW *not* to create an OpenGL context
-        //glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // Optional: Disable resizing
-
-        window = glfwCreateWindow(INITIAL_WIDTH, INITIAL_HEIGHT, APP_NAME.c_str(), nullptr, nullptr);
-        if (!window) {
-            glfwTerminate();
-            throw std::runtime_error("Failed to create GLFW window!");
-        }
-
-        // Store 'this' pointer in the window's user pointer to access Application members in callbacks
-        glfwSetWindowUserPointer(window, this);
-        // Set the framebuffer resize callback function
-        glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-
-        // Initialize frame timer
+        window.init();
         lastFrameTime = std::chrono::high_resolution_clock::now();
-         std::cout << "GLFW Window Initialized." << std::endl;
-
+        std::cout << "GLFW Window Initialized." << std::endl;
     }
 
     /**
@@ -81,7 +62,7 @@ private:
      */
     void initScene() {
         scene.init(); // Generate sphere, set initial physics state
-         std::cout << "Scene Initialized." << std::endl;
+        std::cout << "Scene Initialized." << std::endl;
     }
 
     /**
@@ -92,8 +73,8 @@ private:
      * (e.g., for creating initial vertex/index buffers).
      */
     void initVulkan() {
-        vulkanEngine = new VulkanEngine(window); // Create engine instance
-        vulkanEngine->initVulkan(scene);         // Initialize Vulkan, passing scene data
+        vulkanEngine = new VulkanEngine(window.getHandle());
+        vulkanEngine->initVulkan(scene);
     }
 
     /**
@@ -103,7 +84,7 @@ private:
      * and tells the Vulkan engine to render a frame until the window is closed.
      */
     void mainLoop() {
-        while (!glfwWindowShouldClose(window)) {
+        while (!glfwWindowShouldClose(window.getHandle())) {
             glfwPollEvents(); // Check for and process window events (input, resize, close)
 
             // Calculate delta time for physics and animations
@@ -112,21 +93,21 @@ private:
             lastFrameTime = currentTime;
 
             // Clamp delta time to prevent large simulation steps if frame rate drops drastically
-             deltaTime = std::min(deltaTime, 0.1f); // e.g., max 100ms step
+            deltaTime = std::min(deltaTime, 0.1f); // e.g., max 100ms step
 
             // Update scene logic (e.g., physics simulation)
             scene.update(deltaTime);
 
             // Render the frame using the Vulkan engine, passing the current scene state
             if (vulkanEngine) {
-                 try {
-                     vulkanEngine->drawFrame(scene);
-                 } catch (const std::exception& e) {
+                try {
+                    vulkanEngine->drawFrame(scene);
+                } catch (const std::exception& e) {
                     // Handle potential Vulkan runtime errors during rendering (e.g., device lost)
-                     std::cerr << "Error during drawFrame: " << e.what() << std::endl;
-                     // Depending on the error, might try to recover or just exit
-                     break; // Exit loop on draw error
-                 }
+                    std::cerr << "Error during drawFrame: " << e.what() << std::endl;
+                    // Depending on the error, might try to recover or just exit
+                    break; // Exit loop on draw error
+                }
             }
         }
     }
@@ -138,7 +119,7 @@ private:
      * and terminates GLFW.
      */
     void cleanup() {
-         std::cout << "Starting Application Cleanup..." << std::endl;
+        std::cout << "Starting Application Cleanup..." << std::endl;
         // Vulkan engine cleanup is crucial and should happen before window destruction
         if (vulkanEngine) {
             // The VulkanEngine destructor calls vkDeviceWaitIdle and its cleanup method
@@ -146,40 +127,15 @@ private:
             vulkanEngine = nullptr;
         }
 
-        // Destroy the GLFW window
-        if (window) {
-            glfwDestroyWindow(window);
-            window = nullptr;
-        }
-
-        // Terminate GLFW library
-        glfwTerminate();
-         std::cout << "Application Cleanup Complete." << std::endl;
-
-    }
-
-    /**
-     * @brief Static callback function for GLFW framebuffer resize events.
-     * @param window The window that was resized.
-     * @param width The new width in pixels.
-     * @param height The new height in pixels.
-     *
-     * Retrieves the Application instance from the window's user pointer and notifies
-     * the Vulkan engine that a resize occurred.
-     */
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-        // Retrieve the Application instance associated with this window
-        auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-        if (app && app->vulkanEngine) {
-            // Notify the engine about the resize event
-            app->vulkanEngine->notifyFramebufferResized();
-        }
+        // Window cleanup is handled by the Window class destructor
+        std::cout << "Application Cleanup Complete." << std::endl;
     }
 };
 
-
 // --- Entry Point ---
 int main() {
+    std::cout << "Application starting..." << std::endl;
+
     Application app; // Create the application instance
 
     try {
