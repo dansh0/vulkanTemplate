@@ -15,10 +15,10 @@ void Scene::init(const std::string& modelPath, const float scale) {
     }
 
     // Initialize physics state
-    ballPosition = glm::vec3(0.0f, -4.0f, 0.0f);
-    ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
-    ballRotation = glm::vec3(0.0f, 0.0f, 0.0f);
-    ballRotationVelocity = glm::vec3(0.0f, 0.5f, 0.0f);
+    objPosition = glm::vec3(0.0f, -4.0f, 0.0f);
+    objVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+    objRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    objRotationVelocity = glm::vec3(0.0f, 0.5f, 0.0f);
 }
 
 /**
@@ -28,12 +28,12 @@ void Scene::init(const std::string& modelPath, const float scale) {
  * Keywords: Scene Update, Game Loop Update, Physics Step
  */
 void Scene::update(float deltaTime) {
-    // Update the physics simulation for the ball
+    // Update the physics simulation for the obj
     updatePhysics(deltaTime);
 }
 
 /**
- * @brief Updates the ball's position and handles collisions with the room boundaries.
+ * @brief Updates the obj's position and handles collisions with the room boundaries.
  * @param deltaTime The time step for the physics update.
  *
  * Implements simple Euler integration for position and reflects velocity upon collision.
@@ -43,47 +43,47 @@ void Scene::update(float deltaTime) {
 void Scene::updatePhysics(float deltaTime) {
     // --- Update Position ---
     // Basic Euler integration: new_position = old_position + velocity * time_step
-    ballPosition += ballVelocity * deltaTime;
+    objPosition += objVelocity * deltaTime;
 
     // Check for collisions with room boundaries
     for (int i = 0; i < 3; i++) {
         // Check if we've hit a wall
-        if (ballPosition[i] > roomBounds[i] - ballRadius) {
-            ballPosition[i] = roomBounds[i] - ballRadius;
-            ballVelocity[i] = -ballVelocity[i] * restitution;
-        } else if (ballPosition[i] < -roomBounds[i] + ballRadius) {
-            ballPosition[i] = -roomBounds[i] + ballRadius;
-            ballVelocity[i] = -ballVelocity[i] * restitution;
+        if (objPosition[i] > roomBounds[i] - objRadius) {
+            objPosition[i] = roomBounds[i] - objRadius;
+            objVelocity[i] = -objVelocity[i] * restitution;
+        } else if (objPosition[i] < -roomBounds[i] + objRadius) {
+            objPosition[i] = -roomBounds[i] + objRadius;
+            objVelocity[i] = -objVelocity[i] * restitution;
         }
     }
 
     // Rotate
-    ballRotation += ballRotationVelocity * deltaTime;
+    objRotation += objRotationVelocity * deltaTime;
 
     // --- Optional: Apply Gravity ---
     // Uncomment to add a constant downward acceleration (adjust strength as needed).
     // Assumes Y is the vertical axis.
     // float gravity = 9.81f;
-    // ballVelocity.y -= gravity * deltaTime * 0.2f; // Apply gravity (scaled down for effect)
+    // objVelocity.y -= gravity * deltaTime * 0.2f; // Apply gravity (scaled down for effect)
 }
 
 
 // --- Accessors ---
 
 /**
- * @brief Gets the current ball position.
- * @return Ball's center position.
+ * @brief Gets the current object position.
+ * @return objects's center position.
  */
-glm::vec3 Scene::getBallPosition() const {
-    return ballPosition;
+glm::vec3 Scene::getObjPosition() const {
+    return objPosition;
 }
 
 /**
- * @brief Gets the current ball rotation.
- * @return Ball's rotation.
+ * @brief Gets the current object rotation.
+ * @return object's rotation.
  */
-glm::vec3 Scene::getBallRotation() const {
-    return ballRotation;
+glm::vec3 Scene::getObjRotation() const {
+    return objRotation;
 }
 
 /**

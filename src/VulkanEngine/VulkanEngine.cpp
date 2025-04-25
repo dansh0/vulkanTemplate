@@ -333,7 +333,7 @@ void VulkanEngine::createInstance() {
     // Optional: Provides info about the application to the driver.
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "Bouncing Ball App"; // Customize app name
+    appInfo.pApplicationName = "Obj Viewer App"; // Customize app name
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "Custom Vulkan Engine"; // Customize engine name
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -1276,12 +1276,12 @@ void VulkanEngine::updateUniformBuffer(uint32_t currentImageIndex, const Scene& 
     // --- Calculate MVP matrices ---
     UniformBufferObject ubo{};
 
-    // Model matrix: Get the ball's current position from the scene
-    ubo.model = glm::translate(glm::mat4(1.0f), scene.getBallPosition());
+    // Model matrix: Get the obj's current position from the scene
+    ubo.model = glm::translate(glm::mat4(1.0f), scene.getObjPosition());
     // Optional: Add rotation or scaling here if needed
-    ubo.model = glm::rotate(ubo.model, scene.getBallRotation().x, glm::vec3(1.0f, 0.0f, 0.0f));
-    ubo.model = glm::rotate(ubo.model, scene.getBallRotation().y, glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.model = glm::rotate(ubo.model, scene.getBallRotation().z, glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(ubo.model, scene.getObjRotation().x, glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.model = glm::rotate(ubo.model, scene.getObjRotation().y, glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.model = glm::rotate(ubo.model, scene.getObjRotation().z, glm::vec3(0.0f, 0.0f, 1.0f));
 
 
     // View matrix: Position the camera (fixed position looking at the origin)

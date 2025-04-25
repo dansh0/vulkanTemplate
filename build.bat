@@ -24,7 +24,7 @@ if errorlevel 1 (
 )
 
 REM Run the executable
-echo Running BouncingBall...
-build\BouncingBall.exe
+echo Running Obj Viewer...
+build\ObjViewer.exe
 
 endlocal 

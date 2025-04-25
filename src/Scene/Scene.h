@@ -40,13 +40,13 @@ public:
      * @brief Gets the current position of the bouncing object.
      * @return glm::vec3 representing the object's center position.
      */
-    glm::vec3 getBallPosition() const;
+    glm::vec3 getObjPosition() const;
 
     /**
      * @brief Gets the current rotation of the bouncing object.
      * @return glm::vec3 representing the object's rotation.
      */
-    glm::vec3 getBallRotation() const;
+    glm::vec3 getObjRotation() const;
 
     /**
      * @brief Provides direct access to the vertex data for rendering.
@@ -70,11 +70,11 @@ private:
     std::vector<uint32_t> indices;  // Index data for the model
 
     // --- Physics State ---
-    glm::vec3 ballPosition = glm::vec3(0.0f, 0.0f, 0.0f);       // Current position
-    glm::vec3 ballVelocity = glm::vec3(1.5f, 2.5f, -1.8f);      // Current velocity (m/s or units/s)
-    glm::vec3 ballRotation = glm::vec3(0.0f, 0.0f, 0.0f);      // Current rotation
-    glm::vec3 ballRotationVelocity = glm::vec3(0.0f, 0.0f, 0.0f);      // Current rotation velocity
-    float ballRadius = 0.5f;                                  // Radius used for collision
+    glm::vec3 objPosition = glm::vec3(0.0f, 0.0f, 0.0f);       // Current position
+    glm::vec3 objVelocity = glm::vec3(1.5f, 2.5f, -1.8f);      // Current velocity (m/s or units/s)
+    glm::vec3 objRotation = glm::vec3(0.0f, 0.0f, 0.0f);      // Current rotation
+    glm::vec3 objRotationVelocity = glm::vec3(0.0f, 0.0f, 0.0f);      // Current rotation velocity
+    float objRadius = 0.5f;                                  // Radius used for collision
     glm::vec3 roomBounds = glm::vec3(5.0f, 4.0f, 5.0f);       // Half-extents (center to wall distance)
     float restitution = 0.78f;                                // Coefficient of restitution (bounciness)
 

@@ -45,8 +45,6 @@ void main() {
     vec3 combLight = ambiLight + internalDiffLight + diffLight + diffLight2;// + specLight;
     vec3 col = combLight * objCol;
 
-
-
     // Output the interpolated color with full alpha
     outColor = vec4(col, 1.0);
 }

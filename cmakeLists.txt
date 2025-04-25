@@ -1,12 +1,12 @@
 # Make build files with: cmake -S . -B build -G "MinGW Makefiles"
 # Build with: cmake --build build
-# Run with: build\BouncingBall.exe
+# Run with: build\objViewer.exe
 
 # CMake minimum version required
 cmake_minimum_required(VERSION 3.12)
 
 # Project definition (name, version, language)
-project(BouncingBall VERSION 1.0 LANGUAGES CXX)
+project(objViewer VERSION 1.0 LANGUAGES CXX)
 
 # --- Compiler Settings ---
 set(CMAKE_CXX_STANDARD 17)
@@ -106,13 +106,13 @@ set(SOURCE_FILES
 )
 
 # --- Executable Target ---
-add_executable(BouncingBall ${SOURCE_FILES})
+add_executable(objViewer ${SOURCE_FILES})
 
 # Make the executable depend on the shader compilation
-add_dependencies(BouncingBall Shaders)
+add_dependencies(objViewer Shaders)
 
 # --- Include Directories ---
-target_include_directories(BouncingBall PRIVATE
+target_include_directories(objViewer PRIVATE
     src # Project's own headers
     libraries # External libraries at root level
     "${GLFW_INSTALL_DIR}/include"  # Add GLFW include directory
@@ -135,7 +135,7 @@ if(NOT EXISTS "${GLFW_LIBRARY_FILE}")
 endif()
 
 # Link against Vulkan, the specific GLFW library file, and REQUIRED system libraries
-target_link_libraries(BouncingBall PRIVATE
+target_link_libraries(objViewer PRIVATE
     Vulkan::Vulkan           # Still use imported target for Vulkan
     "${GLFW_LIBRARY_FILE}"   # Use the full path to the GLFW lib file
     nlohmann_json::nlohmann_json  # Add JSON library
@@ -145,12 +145,12 @@ target_link_libraries(BouncingBall PRIVATE
 # Platform-specific libraries (Windows) - This block is now redundant if using MinGW
 # as we added gdi32 etc. above. Can be removed or kept.
 # if(WIN32)
-#     target_link_libraries(BouncingBall PRIVATE user32 gdi32 shell32)
+#     target_link_libraries(objViewer PRIVATE user32 gdi32 shell32)
 # endif()
 
 # --- Output ---
 # Adjusted output messages for manual linking
-message(STATUS "CMake Project: BouncingBall (Manual Linking)")
+message(STATUS "CMake Project: objViewer (Manual Linking)")
 message(STATUS "  Source directory: ${CMAKE_CURRENT_SOURCE_DIR}")
 message(STATUS "  Build directory: ${CMAKE_CURRENT_BINARY_DIR}")
 message(STATUS "  CXX Standard: ${CMAKE_CXX_STANDARD}")

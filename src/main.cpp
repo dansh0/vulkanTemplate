@@ -14,7 +14,7 @@
 #include "Window/Window.h"            // Window management
 
 // --- Constants ---
-const std::string APP_NAME = "Bouncing Ball (Refactored)";
+const std::string APP_NAME = "Obj Viewer";
 
 /**
  * @brief Main application class orchestrating the window, engine, and scene.
