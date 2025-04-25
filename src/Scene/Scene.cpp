@@ -15,8 +15,10 @@ void Scene::init(const std::string& modelPath, const float scale) {
     }
 
     // Initialize physics state
-    ballPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+    ballPosition = glm::vec3(0.0f, -4.0f, 0.0f);
     ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+    ballRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    ballRotationVelocity = glm::vec3(0.0f, 0.5f, 0.0f);
 }
 
 /**
@@ -55,6 +57,9 @@ void Scene::updatePhysics(float deltaTime) {
         }
     }
 
+    // Rotate
+    ballRotation += ballRotationVelocity * deltaTime;
+
     // --- Optional: Apply Gravity ---
     // Uncomment to add a constant downward acceleration (adjust strength as needed).
     // Assumes Y is the vertical axis.
@@ -71,6 +76,14 @@ void Scene::updatePhysics(float deltaTime) {
  */
 glm::vec3 Scene::getBallPosition() const {
     return ballPosition;
+}
+
+/**
+ * @brief Gets the current ball rotation.
+ * @return Ball's rotation.
+ */
+glm::vec3 Scene::getBallRotation() const {
+    return ballRotation;
 }
 
 /**

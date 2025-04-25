@@ -1279,7 +1279,10 @@ void VulkanEngine::updateUniformBuffer(uint32_t currentImageIndex, const Scene& 
     // Model matrix: Get the ball's current position from the scene
     ubo.model = glm::translate(glm::mat4(1.0f), scene.getBallPosition());
     // Optional: Add rotation or scaling here if needed
-    // ubo.model = glm::rotate(ubo.model, time * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.model = glm::rotate(ubo.model, scene.getBallRotation().x, glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.model = glm::rotate(ubo.model, scene.getBallRotation().y, glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.model = glm::rotate(ubo.model, scene.getBallRotation().z, glm::vec3(0.0f, 0.0f, 1.0f));
+
 
     // View matrix: Position the camera (fixed position looking at the origin)
     ubo.view = glm::lookAt(glm::vec3(0.0f, 4.0f, 10.0f), // Camera Position (adjust Z for distance)

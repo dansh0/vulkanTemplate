@@ -14,6 +14,26 @@
  * material properties.
  */
 class ObjLoader {
+private:
+    /**
+     * @brief Calculates the normal of a triangle given its three vertices
+     * @param v0 First vertex position
+     * @param v1 Second vertex position
+     * @param v2 Third vertex position
+     * @return Normalized normal vector
+     */
+    static glm::vec3 calculateTriangleNormal(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) {
+        // Create two vectors from the triangle's edges
+        glm::vec3 edge1 = v1 - v0;
+        glm::vec3 edge2 = v2 - v0;
+        
+        // Calculate cross product to get normal
+        glm::vec3 normal = glm::cross(edge1, edge2);
+        
+        // Normalize the result
+        return glm::normalize(normal);
+    }
+
 public:
     /**
      * @brief Loads an OBJ file and converts it to our Mesh format
@@ -46,53 +66,62 @@ public:
         // For each shape in the OBJ file
         for (const auto& shape : shapes) {
             // For each face in the shape
-            for (const auto& index : shape.mesh.indices) {
-                Vertex vertex{};
+            for (size_t f = 0; f < shape.mesh.indices.size(); f += 3) {
+                // Get the three vertices of the triangle
+                tinyobj::index_t idx0 = shape.mesh.indices[f + 0];
+                tinyobj::index_t idx1 = shape.mesh.indices[f + 1];
+                tinyobj::index_t idx2 = shape.mesh.indices[f + 2];
 
-                // Position
-                vertex.pos = {
-                    attrib.vertices[3 * index.vertex_index + 0] * scale,
-                    attrib.vertices[3 * index.vertex_index + 1] * scale,
-                    attrib.vertices[3 * index.vertex_index + 2] * scale
+                // Get vertex positions
+                glm::vec3 v0 = {
+                    attrib.vertices[3 * idx0.vertex_index + 0] * scale,
+                    attrib.vertices[3 * idx0.vertex_index + 1] * scale,
+                    attrib.vertices[3 * idx0.vertex_index + 2] * scale
+                };
+                glm::vec3 v1 = {
+                    attrib.vertices[3 * idx1.vertex_index + 0] * scale,
+                    attrib.vertices[3 * idx1.vertex_index + 1] * scale,
+                    attrib.vertices[3 * idx1.vertex_index + 2] * scale
+                };
+                glm::vec3 v2 = {
+                    attrib.vertices[3 * idx2.vertex_index + 0] * scale,
+                    attrib.vertices[3 * idx2.vertex_index + 1] * scale,
+                    attrib.vertices[3 * idx2.vertex_index + 2] * scale
                 };
 
-                // Normal (if available)
-                if (index.normal_index >= 0) {
-                    vertex.normal = {
-                        attrib.normals[3 * index.normal_index + 0],
-                        attrib.normals[3 * index.normal_index + 1],
-                        attrib.normals[3 * index.normal_index + 2]
+                // Calculate normal for this triangle
+                glm::vec3 normal = calculateTriangleNormal(v0, v1, v2);
+
+                // Add vertices with the calculated normal
+                for (size_t i = 0; i < 3; i++) {
+                    tinyobj::index_t idx = shape.mesh.indices[f + i];
+                    Vertex vertex{};
+
+                    // Position
+                    vertex.pos = {
+                        attrib.vertices[3 * idx.vertex_index + 0] * scale,
+                        attrib.vertices[3 * idx.vertex_index + 1] * scale,
+                        attrib.vertices[3 * idx.vertex_index + 2] * scale
                     };
-                } else {
-                    // If no normal, use a default up vector
-                    vertex.normal = {0.0f, 1.0f, 0.0f};
+
+                    // Use calculated normal
+                    vertex.normal = normal;
+
+                    // Color (if available)
+                    if (attrib.colors.size() > 0) {
+                        vertex.color = {
+                            attrib.colors[3 * idx.vertex_index + 0],
+                            attrib.colors[3 * idx.vertex_index + 1],
+                            attrib.colors[3 * idx.vertex_index + 2]
+                        };
+                    } else {
+                        // If no color, use white
+                        vertex.color = {1.0f, 1.0f, 1.0f};
+                    }
+
+                    vertices.push_back(vertex);
+                    indices.push_back(static_cast<uint32_t>(indices.size()));
                 }
-
-                // // Texture coordinates (if available)
-                // if (index.texcoord_index >= 0) {
-                //     vertex.texCoord = {
-                //         attrib.texcoords[2 * index.texcoord_index + 0],
-                //         attrib.texcoords[2 * index.texcoord_index + 1]
-                //     };
-                // } else {
-                //     // If no texture coordinates, use default
-                //     vertex.texCoord = {0.0f, 0.0f};
-                // }
-
-                // Color (if available)
-                if (attrib.colors.size() > 0) {
-                    vertex.color = {
-                        attrib.colors[3 * index.vertex_index + 0],
-                        attrib.colors[3 * index.vertex_index + 1],
-                        attrib.colors[3 * index.vertex_index + 2]
-                    };
-                } else {
-                    // If no color, use white
-                    vertex.color = {1.0f, 1.0f, 1.0f};
-                }
-
-                vertices.push_back(vertex);
-                indices.push_back(static_cast<uint32_t>(indices.size()));
             }
         }
 
