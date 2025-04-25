@@ -1,0 +1,137 @@
+# Make build files with: cmake -S . -B build -G "MinGW Makefiles"
+# Build with: cmake --build build
+# Run with: build\BouncingBall.exe
+
+# CMake minimum version required
+cmake_minimum_required(VERSION 3.12)
+
+# Project definition (name, version, language)
+project(BouncingBall VERSION 1.0 LANGUAGES CXX)
+
+# --- Compiler Settings ---
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# --- !!! MANUAL DEPENDENCY PATHS - EDIT THESE !!! ---
+# Set these variables to the root directory of your library installations.
+# Ensure backslashes are escaped (\\) or use forward slashes (/).
+
+# Adjust this path to where you unzipped/installed GLFW
+set(GLFW_INSTALL_DIR "C:/glfw-3.4.bin.WIN64") # NO TRAILING SLASH
+
+# Adjust this path to where you unzipped/installed GLM
+set(GLM_INSTALL_DIR "C:/glm-1.0.1") # NO TRAILING SLASH
+
+# --- Check if directories exist (Optional but recommended) ---
+if(NOT EXISTS "${GLFW_INSTALL_DIR}/include/GLFW/glfw3.h")
+    message(FATAL_ERROR "GLFW include directory not found at ${GLFW_INSTALL_DIR}/include/GLFW - Check GLFW_INSTALL_DIR path.")
+endif()
+# Adjust library path check based on your specific GLFW binary package structure
+if(NOT EXISTS "${GLFW_INSTALL_DIR}/lib-mingw-w64/libglfw3.a") # Check for MinGW static lib
+     # Also check for potential DLL import lib if static isn't found
+    if(NOT EXISTS "${GLFW_INSTALL_DIR}/lib-mingw-w64/libglfw3dll.a")
+      message(FATAL_ERROR "GLFW library file (libglfw3.a or libglfw3dll.a) not found in ${GLFW_INSTALL_DIR}/lib-mingw-w64 - Check GLFW_INSTALL_DIR path and package contents.")
+    endif()
+endif()
+if(NOT EXISTS "${GLM_INSTALL_DIR}/glm/glm.hpp")
+    message(FATAL_ERROR "GLM headers not found at ${GLM_INSTALL_DIR}/glm - Check GLM_INSTALL_DIR path.")
+endif()
+
+# --- Find Vulkan Dependency (Still recommended) ---
+find_package(Vulkan REQUIRED)
+
+# --- find_package for glfw3 and glm REMOVED ---
+
+# --- Shader Compilation ---
+find_program(GLSL_COMPILER glslc HINTS ENV VULKAN_SDK PATH_SUFFIXES bin REQUIRED)
+
+set(SHADER_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
+set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/shaders)
+
+# Ensure the output directory exists
+file(MAKE_DIRECTORY ${SHADER_OUT_DIR})
+
+# Define shader files
+set(VERT_SRC ${SHADER_SRC_DIR}/shader.vert)
+set(FRAG_SRC ${SHADER_SRC_DIR}/shader.frag)
+set(VERT_SPV ${SHADER_OUT_DIR}/vert.spv)
+set(FRAG_SPV ${SHADER_OUT_DIR}/frag.spv)
+
+# Add custom command to compile shaders
+add_custom_command(
+    OUTPUT ${VERT_SPV} ${FRAG_SPV}
+    COMMAND ${GLSL_COMPILER} ${VERT_SRC} -o ${VERT_SPV}
+    COMMAND ${GLSL_COMPILER} ${FRAG_SRC} -o ${FRAG_SPV}
+    DEPENDS ${VERT_SRC} ${FRAG_SRC}
+    COMMENT "Compiling shaders..."
+)
+
+# Create a custom target for shaders
+add_custom_target(Shaders DEPENDS ${VERT_SPV} ${FRAG_SPV})
+
+# --- Project Sources ---
+set(SOURCE_FILES
+    src/main.cpp
+    src/VulkanEngine/VulkanEngine.cpp
+    src/VulkanEngine/VulkanUtils.cpp
+    src/Scene/Scene.cpp
+    src/Geometry/Sphere.cpp
+)
+
+# --- Executable Target ---
+add_executable(BouncingBall ${SOURCE_FILES})
+
+# Make the executable depend on the shader compilation
+add_dependencies(BouncingBall Shaders)
+
+# --- Include Directories ---
+target_include_directories(BouncingBall PRIVATE
+    src # Project's own headers
+    "${GLFW_INSTALL_DIR}/include"  # Add GLFW include directory
+    "${GLM_INSTALL_DIR}"           # Add GLM root include directory
+    # Vulkan headers usually handled by linking Vulkan::Vulkan
+)
+
+# --- Linking Dependencies ---
+# *** THIS SECTION IS REPLACED WITH MANUAL LINKING LOGIC ***
+
+# Specify the full path to the GLFW library file you want to link
+# Choose ONE of the following lines (static or dynamic) and adjust the path/filename:
+set(GLFW_LIBRARY_FILE "${GLFW_INSTALL_DIR}/lib-mingw-w64/libglfw3.a")      # Static linking (MinGW)
+# set(GLFW_LIBRARY_FILE "${GLFW_INSTALL_DIR}/lib-mingw-w64/libglfw3dll.a") # Dynamic linking (MinGW)
+
+# Check if the chosen library file exists
+message(STATUS "Using GLFW Library: ${GLFW_LIBRARY_FILE}")
+if(NOT EXISTS "${GLFW_LIBRARY_FILE}")
+     message(FATAL_ERROR "Selected GLFW library file not found: ${GLFW_LIBRARY_FILE}")
+endif()
+
+# Link against Vulkan, the specific GLFW library file, and REQUIRED system libraries
+target_link_libraries(BouncingBall PRIVATE
+    Vulkan::Vulkan           # Still use imported target for Vulkan
+    "${GLFW_LIBRARY_FILE}"   # Use the full path to the GLFW lib file
+
+    # --- System Libraries needed by GLFW on Windows (MinGW) ---
+    # You MUST add these manually when not using find_package!
+    gdi32
+    # user32 # Often implicitly linked, but sometimes needed
+    # shell32 # Sometimes needed
+)
+
+# Platform-specific libraries (Windows) - This block is now redundant if using MinGW
+# as we added gdi32 etc. above. Can be removed or kept.
+# if(WIN32)
+#     target_link_libraries(BouncingBall PRIVATE user32 gdi32 shell32)
+# endif()
+
+# --- Output ---
+# Adjusted output messages for manual linking
+message(STATUS "CMake Project: BouncingBall (Manual Linking)")
+message(STATUS "  Source directory: ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "  Build directory: ${CMAKE_CURRENT_BINARY_DIR}")
+message(STATUS "  CXX Standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "  GLFW Install Dir: ${GLFW_INSTALL_DIR}")
+message(STATUS "  GLM Install Dir: ${GLM_INSTALL_DIR}")
+message(STATUS "  Found Vulkan: ${Vulkan_FOUND}")
+message(STATUS "  GLSL Compiler: ${GLSL_COMPILER}")
+message(STATUS "  Shader Output Dir: ${SHADER_OUT_DIR}")
