@@ -12,6 +12,15 @@ project(BouncingBall VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# --- Fetch nlohmann/json ---
+include(FetchContent)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.2
+)
+FetchContent_MakeAvailable(json)
+
 # --- !!! MANUAL DEPENDENCY PATHS - EDIT THESE !!! ---
 # Set these variables to the root directory of your library installations.
 # Ensure backslashes are escaped (\\) or use forward slashes (/).
@@ -69,6 +78,22 @@ add_custom_command(
 # Create a custom target for shaders
 add_custom_target(Shaders DEPENDS ${VERT_SPV} ${FRAG_SPV})
 
+# --- Create build directory structure ---
+# Create build/shaders directory for shader output
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/shaders)
+
+# Create build directory for config files if it doesn't exist
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
+
+# Check if window config exists, if not create default
+set(WINDOW_CONFIG_PATH "${CMAKE_BINARY_DIR}/window_config.json")
+if(NOT EXISTS "${WINDOW_CONFIG_PATH}")
+    file(WRITE "${WINDOW_CONFIG_PATH}" "{\n  \"x\": 100,\n  \"y\": 100,\n  \"width\": 800,\n  \"height\": 600,\n  \"maximized\": false\n}")
+    message(STATUS "Created default window config at ${WINDOW_CONFIG_PATH}")
+else()
+    message(STATUS "Using existing window config at ${WINDOW_CONFIG_PATH}")
+endif()
+
 # --- Project Sources ---
 set(SOURCE_FILES
     src/main.cpp
@@ -110,12 +135,8 @@ endif()
 target_link_libraries(BouncingBall PRIVATE
     Vulkan::Vulkan           # Still use imported target for Vulkan
     "${GLFW_LIBRARY_FILE}"   # Use the full path to the GLFW lib file
-
-    # --- System Libraries needed by GLFW on Windows (MinGW) ---
-    # You MUST add these manually when not using find_package!
+    nlohmann_json::nlohmann_json  # Add JSON library
     gdi32
-    # user32 # Often implicitly linked, but sometimes needed
-    # shell32 # Sometimes needed
 )
 
 # Platform-specific libraries (Windows) - This block is now redundant if using MinGW

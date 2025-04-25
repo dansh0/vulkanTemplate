@@ -1,4 +1,0 @@
-C:/Users/dshor/Documents/Github/vulkanTemplate/build/CMakeFiles/Shaders.dir
-C:/Users/dshor/Documents/Github/vulkanTemplate/build/CMakeFiles/BouncingBall.dir
-C:/Users/dshor/Documents/Github/vulkanTemplate/build/CMakeFiles/edit_cache.dir
-C:/Users/dshor/Documents/Github/vulkanTemplate/build/CMakeFiles/rebuild_cache.dir

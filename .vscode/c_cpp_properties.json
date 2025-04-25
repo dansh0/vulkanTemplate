@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/glfw-3.4.bin.WIN64/include",
+                "C:/glm-1.0.1",
+                "${VULKAN_SDK}/Include"
+            ],
+            "defines": [],
+            "windowsSdkVersion": "10.0.26100.0",
+            "compilerPath": "C:/mingw64/bin/g++.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-gcc-x64"
+        }
+    ],
+    "version": 4
+} 
