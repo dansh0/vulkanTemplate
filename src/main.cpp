@@ -35,7 +35,7 @@ public:
     void run() {
         initWindow();       // Setup GLFW window
         initScene();        // Initialize scene data (geometry, physics state)
-        // initVulkan();       // Initialize Vulkan engine using window and scene data
+        initVulkan();       // Initialize Vulkan engine using window and scene data
         mainLoop();         // Enter the main update/render loop
         cleanup();          // Release resources
     }
@@ -148,7 +148,7 @@ private:
 int main() {
     std::cout << "Application starting..." << std::endl;
 
-    Application app; // Create the application instance
+    graphics::Application app; // Create the application instance
 
     try {
         app.run(); // Run the application lifecycle
