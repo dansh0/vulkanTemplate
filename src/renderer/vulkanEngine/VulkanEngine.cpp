@@ -24,12 +24,12 @@ VulkanEngine::~VulkanEngine() {
     // but calling it here provides some safety net.
     // However, relying on destructors for Vulkan cleanup can be problematic
     // if exceptions occur during construction or if object lifetime is complex.
-     if (device != VK_NULL_HANDLE) { // Basic check if init was partially successful
-         // This wait is crucial if cleanup wasn't called explicitly
-         // to ensure GPU is idle before destroying resources.
+    if (device != VK_NULL_HANDLE) { // Basic check if init was partially successful
+        // This wait is crucial if cleanup wasn't called explicitly
+        // to ensure GPU is idle before destroying resources.
         vkDeviceWaitIdle(device);
         cleanup();
-     }
+    }
 }
 
 // --- Public Methods ---
@@ -88,68 +88,108 @@ void VulkanEngine::cleanup() {
     // especially if called implicitly by destructor or after an error.
     // If called explicitly after main loop, vkDeviceWaitIdle in mainLoop is sufficient.
     if (device != VK_NULL_HANDLE) {
-       vkDeviceWaitIdle(device);
+        vkDeviceWaitIdle(device);
     }
 
-    cleanupSwapChain(); // Clean swapchain + depth + framebuffers + color views
+    // Cleanup swap chain first (depends on command buffers)
+    cleanupSwapChain();
 
-    // Destroy pipeline and related objects
-    if (graphicsPipeline != VK_NULL_HANDLE) vkDestroyPipeline(device, graphicsPipeline, nullptr);
-    if (pipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-    if (renderPass != VK_NULL_HANDLE) vkDestroyRenderPass(device, renderPass, nullptr);
+    // Cleanup command pool (depends on command buffers)
+    if (commandPool != VK_NULL_HANDLE) {
+        vkDestroyCommandPool(device, commandPool, nullptr);
+        commandPool = VK_NULL_HANDLE;
+    }
 
-    // Destroy uniform buffers and memory
-    for (size_t i = 0; i < uniformBuffers.size(); ++i) {
-        if (uniformBuffers[i] != VK_NULL_HANDLE) vkDestroyBuffer(device, uniformBuffers[i], nullptr);
-        if (uniformBuffersMemory[i] != VK_NULL_HANDLE) vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+    // Cleanup pipeline
+    if (graphicsPipeline != VK_NULL_HANDLE) {
+        vkDestroyPipeline(device, graphicsPipeline, nullptr);
+        graphicsPipeline = VK_NULL_HANDLE;
+    }
+
+    // Cleanup pipeline layout
+    if (pipelineLayout != VK_NULL_HANDLE) {
+        vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+        pipelineLayout = VK_NULL_HANDLE;
+    }
+
+    // Cleanup render pass
+    if (renderPass != VK_NULL_HANDLE) {
+        vkDestroyRenderPass(device, renderPass, nullptr);
+        renderPass = VK_NULL_HANDLE;
+    }
+
+    // Cleanup descriptor pool
+    if (descriptorPool != VK_NULL_HANDLE) {
+        vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+        descriptorPool = VK_NULL_HANDLE;
+    }
+
+    // Cleanup descriptor set layout
+    if (descriptorSetLayout != VK_NULL_HANDLE) {
+        vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+        descriptorSetLayout = VK_NULL_HANDLE;
+    }
+
+    // Cleanup uniform buffers
+    for (size_t i = 0; i < uniformBuffers.size(); i++) {
+        if (uniformBuffers[i] != VK_NULL_HANDLE) {
+            vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+            uniformBuffers[i] = VK_NULL_HANDLE;
+        }
+        if (uniformBuffersMemory[i] != VK_NULL_HANDLE) {
+            vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+            uniformBuffersMemory[i] = VK_NULL_HANDLE;
+        }
     }
     uniformBuffers.clear();
     uniformBuffersMemory.clear();
     uniformBuffersMapped.clear();
 
-    // Destroy descriptor pool (implicitly frees descriptor sets)
-    if (descriptorPool != VK_NULL_HANDLE) vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-
-    // Destroy descriptor set layout
-    if (descriptorSetLayout != VK_NULL_HANDLE) vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-
-    // Destroy synchronization objects
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-         // Check if vectors were populated before destroying
-        if (i < renderFinishedSemaphores.size() && renderFinishedSemaphores[i] != VK_NULL_HANDLE)
+    // Cleanup semaphores and fences
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        // Check if vectors were populated before destroying
+        if (i < renderFinishedSemaphores.size() && renderFinishedSemaphores[i] != VK_NULL_HANDLE) {
             vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
-        if (i < imageAvailableSemaphores.size() && imageAvailableSemaphores[i] != VK_NULL_HANDLE)
+            renderFinishedSemaphores[i] = VK_NULL_HANDLE;
+        }
+        if (i < imageAvailableSemaphores.size() && imageAvailableSemaphores[i] != VK_NULL_HANDLE) {
             vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
-        if (i < inFlightFences.size() && inFlightFences[i] != VK_NULL_HANDLE)
+            imageAvailableSemaphores[i] = VK_NULL_HANDLE;
+        }
+        if (i < inFlightFences.size() && inFlightFences[i] != VK_NULL_HANDLE) {
             vkDestroyFence(device, inFlightFences[i], nullptr);
+            inFlightFences[i] = VK_NULL_HANDLE;
+        }
     }
     imageAvailableSemaphores.clear();
     renderFinishedSemaphores.clear();
     inFlightFences.clear();
 
-    // Destroy command pool (implicitly frees command buffers)
-    if (commandPool != VK_NULL_HANDLE) vkDestroyCommandPool(device, commandPool, nullptr);
-
-    // Destroy logical device
-    if (device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
-
-    // Destroy debug messenger (if enabled)
-    if (enableValidationLayers && debugMessenger != VK_NULL_HANDLE) {
-        VulkanUtils::DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+    // Cleanup device
+    if (device != VK_NULL_HANDLE) {
+        vkDestroyDevice(device, nullptr);
+        device = VK_NULL_HANDLE;
     }
 
-    // Destroy surface
-    if (surface != VK_NULL_HANDLE) vkDestroySurfaceKHR(instance, surface, nullptr);
+    // Cleanup debug messenger
+    if (enableValidationLayers && debugMessenger != VK_NULL_HANDLE) {
+        VulkanUtils::DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+        debugMessenger = VK_NULL_HANDLE;
+    }
 
-    // Destroy instance
-    if (instance != VK_NULL_HANDLE) vkDestroyInstance(instance, nullptr);
+    // Cleanup surface
+    if (surface != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+        surface = VK_NULL_HANDLE;
+    }
 
-    // Nullify handles after destruction (good practice)
-    device = VK_NULL_HANDLE;
-    instance = VK_NULL_HANDLE;
-    // ... nullify others ...
-     std::cout << "Vulkan Engine Cleaned Up." << std::endl;
+    // Cleanup instance
+    if (instance != VK_NULL_HANDLE) {
+        vkDestroyInstance(instance, nullptr);
+        instance = VK_NULL_HANDLE;
+    }
 
+    std::cout << "Vulkan Engine Cleaned Up." << std::endl;
 }
 
 /**
@@ -983,17 +1023,19 @@ void VulkanEngine::createUniformBuffers() {
     uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        VulkanUtils::createBuffer(physicalDevice, device, bufferSize,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, // Usage: Uniform buffer
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, // CPU visible & coherent
-            uniformBuffers[i], uniformBuffersMemory[i]);
+        VulkanUtils::createBuffer(
+            physicalDevice,
+            device,
+            bufferSize,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            uniformBuffers[i],
+            uniformBuffersMemory[i]
+        );
 
-        // Map the buffer memory once and keep the pointer. Coherent memory doesn't require explicit flush/invalidate.
-        // The pointer in uniformBuffersMapped[i] can be used directly with memcpy in updateUniformBuffer.
+        // Map the memory once during creation
         vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
     }
-     std::cout << "Uniform Buffers Created." << std::endl;
-
 }
 
 /**
@@ -1169,7 +1211,6 @@ void VulkanEngine::createSyncObjects() {
  *
  * Keywords: UBO Update, Model View Projection (MVP), glm::lookAt, glm::perspective
  */
-// TODO: Update this with matrices and camera
 void VulkanEngine::updateUniformBuffer(uint32_t currentImageIndex, const Scene& scene) {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -1183,9 +1224,9 @@ void VulkanEngine::updateUniformBuffer(uint32_t currentImageIndex, const Scene& 
 
     // Create view matrix
     glm::mat4 view = glm::lookAt(
-        glm::vec3(2.0f, 2.0f, 2.0f),  // Camera position
+        glm::vec3(0.0f, 0.0f, 5.0f),  // Camera position
         glm::vec3(0.0f, 0.0f, 0.0f),  // Look at point
-        glm::vec3(0.0f, 0.0f, 1.0f)   // Up vector
+        glm::vec3(0.0f, 1.0f, 0.0f)   // Up vector
     );
 
     // Create projection matrix
@@ -1205,11 +1246,8 @@ void VulkanEngine::updateUniformBuffer(uint32_t currentImageIndex, const Scene& 
     ubo.view = view;
     ubo.proj = proj;
 
-    // Copy data to the mapped buffer
-    void* data;
-    vkMapMemory(device, uniformBuffersMemory[currentImageIndex], 0, sizeof(ubo), 0, &data);
-    memcpy(data, &ubo, sizeof(ubo));
-    vkUnmapMemory(device, uniformBuffersMemory[currentImageIndex]);
+    // Copy data directly to the already mapped buffer
+    memcpy(uniformBuffersMapped[currentImageIndex], &ubo, sizeof(ubo));
 }
 
 /**

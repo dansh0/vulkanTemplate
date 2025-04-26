@@ -11,7 +11,7 @@ if "%1"=="full" (
     if exist build rmdir /s /q build
     
     echo Running CMake configuration...
-    cmake -S . -B build -G "MinGW Makefiles"
+    cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug
     if errorlevel 1 (
         echo CMake configuration failed
         exit /b 1
@@ -21,7 +21,7 @@ if "%1"=="full" (
 )
 
 REM Build the project
-cmake --build build
+cmake --build build --config Debug
 if errorlevel 1 (
     echo Build failed
     exit /b 1

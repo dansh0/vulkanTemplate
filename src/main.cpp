@@ -34,8 +34,8 @@ public:
      */
     void run() {
         initWindow();       // Setup GLFW window
-        initScene();        // Initialize scene data (geometry, physics state)
-        initVulkan();       // Initialize Vulkan engine using window and scene data
+        initVulkan();       // Initialize Vulkan engine first
+        initScene();        // Now we can safely use vulkanEngine
         mainLoop();         // Enter the main update/render loop
         cleanup();          // Release resources
     }
@@ -61,6 +61,19 @@ private:
     }
 
     /**
+     * @brief Initializes the Vulkan rendering engine.
+     *
+     * Creates the VulkanEngine instance, passing the GLFW window handle.
+     * Calls the engine's main initialization function, providing scene data if needed
+     * (e.g., for creating initial vertex/index buffers).
+     */
+    void initVulkan() {
+        vulkanEngine = new VulkanEngine(window.getHandle());
+        vulkanEngine->initVulkan(scene);
+        std::cout << "Vulkan Engine Initialized." << std::endl;
+    }
+
+    /**
      * @brief Initializes the scene logic and data.
      */
     void initScene() {
@@ -73,20 +86,8 @@ private:
         );
         
         // Initialize scene with the geometry buffer and model path
-        scene.init("Models/bunny.obj", std::move(geometryBuffer));
+        scene.init("Models/diamond.obj", std::move(geometryBuffer));
         std::cout << "Scene Initialized." << std::endl;
-    }
-
-    /**
-     * @brief Initializes the Vulkan rendering engine.
-     *
-     * Creates the VulkanEngine instance, passing the GLFW window handle.
-     * Calls the engine's main initialization function, providing scene data if needed
-     * (e.g., for creating initial vertex/index buffers).
-     */
-    void initVulkan() {
-        vulkanEngine = new VulkanEngine(window.getHandle());
-        vulkanEngine->initVulkan(scene);
     }
 
     /**

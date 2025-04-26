@@ -7,7 +7,7 @@ namespace graphics {
 Scene::Scene() {
     // Initialize camera with default values
     camera_ = std::make_shared<Camera>();
-    camera_->setPosition(glm::vec3(0.0f, 4.0f, 10.0f));
+    camera_->setPosition(glm::vec3(0.0f, 0.0f, 5.0f));
     camera_->setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
     camera_->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
 }
@@ -28,7 +28,7 @@ void Scene::init(const std::string& modelPath, std::unique_ptr<IGeometryBuffer> 
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     
-    if (!ObjLoader::loadObj(modelPath, 1.0f, vertices, indices)) {
+    if (!ObjLoader::loadObj(modelPath, 0.05f, vertices, indices)) {
         std::cerr << "Failed to load model: " << modelPath << std::endl;
         throw std::runtime_error("Failed to load model");
     }
