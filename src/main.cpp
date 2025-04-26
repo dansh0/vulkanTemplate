@@ -144,6 +144,8 @@ private:
     }
 };
 
+} // namespace graphics
+
 // --- Entry Point ---
 int main() {
     std::cout << "Application starting..." << std::endl;
@@ -166,4 +168,3 @@ int main() {
 
     return EXIT_SUCCESS; // Indicate successful execution
 }
-} // namespace graphics
