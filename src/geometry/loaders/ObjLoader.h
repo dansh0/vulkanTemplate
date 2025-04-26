@@ -1,10 +1,13 @@
 #pragma once
 
-#include "Mesh.h"
+#include "../mesh/Mesh.h"
+#include "../Vertex.h"
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include <string>
 #include <vector>
 #include <iostream>
+
+namespace graphics {
 
 /**
  * @brief Utility class for loading OBJ files and converting them to our Mesh format
@@ -131,4 +134,6 @@ public:
 
         return true;
     }
-}; 
+};
+
+} // namespace graphics 

@@ -9,9 +9,12 @@
 #include <GLFW/glfw3.h>     // For windowing and input
 
 // Project Includes
-#include "VulkanEngine/VulkanEngine.h" // The core Vulkan logic wrapper
-#include "Scene/Scene.h"              // The scene logic and data
-#include "Window/Window.h"            // Window management
+#include "renderer/vulkanEngine/VulkanEngine.h" // The core Vulkan logic wrapper
+#include "core/scene/Scene.h"              // The scene logic and data
+#include "window/Window.h"            // Window management
+#include "renderer/vulkanUtils/VulkanGeometryBuffer.h" // Added for VulkanGeometryBuffer
+
+namespace graphics {
 
 // --- Constants ---
 const std::string APP_NAME = "Obj Viewer";
@@ -61,7 +64,16 @@ private:
      * @brief Initializes the scene logic and data.
      */
     void initScene() {
-        scene.init("models/bunny.obj", 40.0f); // Default path, can be changed
+        // Create VulkanGeometryBuffer with required Vulkan handles
+        auto geometryBuffer = std::make_unique<VulkanGeometryBuffer>(
+            vulkanEngine->getPhysicalDevice(),
+            vulkanEngine->getDevice(),
+            vulkanEngine->getGraphicsQueue(),
+            vulkanEngine->getCommandPool()
+        );
+        
+        // Initialize scene with the geometry buffer and model path
+        scene.init("Models/bunny.obj", std::move(geometryBuffer));
         std::cout << "Scene Initialized." << std::endl;
     }
 
@@ -154,3 +166,4 @@ int main() {
 
     return EXIT_SUCCESS; // Indicate successful execution
 }
+} // namespace graphics

@@ -1,5 +1,10 @@
 #pragma once
 
+#include "../../core/scene/Scene.h"
+#include "../vulkanutils/VulkanGeometryBuffer.h"
+#include "../../geometry/mesh/Mesh.h" // Include Vertex definition
+#include "../vulkanUtils/VulkanUtils.h"      // Include helper functions and structs
+
 // Use Vulkan included via GLFW
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -9,14 +14,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../Geometry/Mesh.h" // Include Vertex definition
-#include "VulkanUtils.h"      // Include helper functions and structs
-
 #include <vector>
 #include <string>
 #include <optional>
 #include <stdexcept> // For runtime_error
 #include <chrono>    // Potentially for timing within engine later
+
+namespace graphics {
 
 // Forward declare Scene class to avoid circular includes if Scene needs VulkanEngine
 class Scene;
@@ -81,6 +85,12 @@ public:
      */
     void notifyFramebufferResized();
 
+    // Getters for Vulkan handles
+    VkPhysicalDevice getPhysicalDevice() const { return physicalDevice; }
+    VkDevice getDevice() const { return device; }
+    VkQueue getGraphicsQueue() const { return graphicsQueue; }
+    VkCommandPool getCommandPool() const { return commandPool; }
+
      // --- Debug Callback ---
     // Static member function to be used as the callback by Vulkan
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -121,13 +131,6 @@ private:
     std::vector<VkCommandBuffer> commandBuffers; // One per frame in flight
 
     // --- Buffers & Memory ---
-    // Geometry buffers (handles owned by engine, data provided by scene at init)
-    VkBuffer vertexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
-    VkBuffer indexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
-    uint32_t indexCount = 0; // Store index count after buffer creation
-
     // Uniform buffers (one per frame in flight)
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
@@ -166,8 +169,6 @@ private:
     void createCommandPool();
     void createDepthResources();
     void createFramebuffers();
-    void createVertexBuffer(const std::vector<Vertex>& vertices);
-    void createIndexBuffer(const std::vector<uint32_t>& indices);
     void createUniformBuffers();
     void createDescriptorPool();
     void createDescriptorSets();
@@ -176,7 +177,7 @@ private:
 
     // --- Private Runtime Steps ---
     void updateUniformBuffer(uint32_t currentImageIndex, const Scene& scene);
-    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const Scene& scene);
     void cleanupSwapChain();
     void recreateSwapChain(const Scene& scene); // Needs scene data again for buffers
 
@@ -217,3 +218,5 @@ private:
         alignas(16) glm::mat4 proj;
     };
 };
+
+} // namespace graphics

@@ -97,13 +97,26 @@ endif()
 # --- Project Sources ---
 set(SOURCE_FILES
     src/main.cpp
-    src/VulkanEngine/VulkanEngine.cpp
-    src/VulkanEngine/VulkanUtils.cpp
-    src/Scene/Scene.cpp
-    src/Geometry/Sphere.cpp
-    src/Window/Window.cpp
-    src/Scene/Object3D.cpp
-    libraries/tiny_obj_loader/tiny_obj_loader.cc  # Add tiny_obj_loader implementation
+    
+    # Core
+    src/core/object3D/Object3D.cpp
+    src/core/scene/Scene.cpp
+    src/core/camera/Camera.cpp
+    
+    # Geometry
+    # src/geometry/Mesh/Mesh.cpp
+    # src/geometry/Geometry/Geometry.cpp
+    # src/geometry/loaders/ObjLoader.cpp
+    
+    # Renderer
+    src/renderer/vulkanEngine/VulkanEngine.cpp
+    src/renderer/vulkanUtils/VulkanUtils.cpp
+    
+    # Window
+    src/window/Window.cpp
+    
+    # External
+    libraries/tiny_obj_loader/tiny_obj_loader.cc
 )
 
 # --- Executable Target ---
@@ -115,7 +128,12 @@ add_dependencies(objViewer Shaders)
 # --- Include Directories ---
 target_include_directories(objViewer PRIVATE
     src # Project's own headers
-    libraries # External libraries at root level
+    src/core # Core engine headers
+    src/geometry # Geometry headers
+    src/materials # Material headers
+    src/renderer # Renderer headers
+    src/window # Window headers
+    libraries # External libraries
     "${GLFW_INSTALL_DIR}/include"  # Add GLFW include directory
     "${GLM_INSTALL_DIR}"           # Add GLM root include directory
     # Vulkan headers usually handled by linking Vulkan::Vulkan

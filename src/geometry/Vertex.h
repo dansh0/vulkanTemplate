@@ -1,14 +1,14 @@
-#pragma once // Use include guards to prevent multiple inclusions
+#pragma once
 
 #define GLM_ENABLE_EXPERIMENTAL // Needed for gtx/hash
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp> // For std::hash<glm::vec3> specialization
-
 #include <vulkan/vulkan.h> // For Vulkan types used in descriptions
-
-#include <vector>
 #include <array>
 #include <cstddef> // For offsetof
+#include <functional> // For std::hash
+
+namespace graphics {
 
 /**
  * @brief Represents a single vertex in a 3D mesh.
@@ -22,6 +22,11 @@ struct Vertex {
     glm::vec3 pos;   // Position in 3D space
     glm::vec3 normal; // Normal angle
     glm::vec3 color; // Color associated with the vertex
+
+    Vertex(const glm::vec3& p = glm::vec3(0.0f),
+           const glm::vec3& n = glm::vec3(0.0f, 1.0f, 0.0f),
+           const glm::vec3& c = glm::vec3(1.0f))
+        : pos(p), normal(n), color(c) {}
 
     /**
      * @brief Provides the Vulkan binding description for this vertex type.
@@ -74,7 +79,6 @@ struct Vertex {
         attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT; // vec3 (3 * 32-bit float)
         attributeDescriptions[1].offset = offsetof(Vertex, normal); // Offset of the 'normal' member
 
-
         // Color Attribute (location = 2)
         attributeDescriptions[2].binding = 0;
         attributeDescriptions[2].location = 2; // layout(location = 2) in shader
@@ -96,16 +100,19 @@ struct Vertex {
     }
 };
 
+} // namespace graphics
+
 // --- Provide a hash function specialization for Vertex ---
 // This allows Vertex structs to be used as keys in std::unordered_map (e.g., for vertex deduplication).
 // It relies on glm::vec3 having a hash specialization (provided by <glm/gtx/hash.hpp>).
 namespace std {
-    template<> struct hash<Vertex> {
-        size_t operator()(Vertex const& vertex) const {
+    template<>
+    struct hash<graphics::Vertex> {
+        size_t operator()(const graphics::Vertex& vertex) const {
             // Combine hashes of position and color using bitwise operations.
             // This is a simple hash combine function; more robust ones exist.
             return ((hash<glm::vec3>()(vertex.pos) ^
                    (hash<glm::vec3>()(vertex.color) << 1)) >> 1);
         }
     };
-} // namespace std
+} // namespace std 

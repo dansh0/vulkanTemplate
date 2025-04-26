@@ -1,6 +1,6 @@
 #include "VulkanUtils.h"
 #include <vulkan/vulkan.h> // Include full Vulkan header for implementations
-#include "../VulkanEngine/VulkanEngine.h" // Needed for VulkanEngine::debugCallback
+#include "../vulkanEngine/VulkanEngine.h" // Needed for VulkanEngine::debugCallback
 #include <stdexcept>
 #include <fstream>
 #include <iostream>
@@ -318,8 +318,7 @@ namespace VulkanUtils {
                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         // Point to the static callback function defined in VulkanEngine
-        // We need to include VulkanEngine.h in VulkanUtils.cpp for this line to work!
-        createInfo.pfnUserCallback = VulkanEngine::debugCallback;
+        createInfo.pfnUserCallback = graphics::VulkanEngine::debugCallback;
         createInfo.pUserData = nullptr; // Optional: Can pass user data (e.g., 'this' pointer) if callback isn't static
     }
 

@@ -1,5 +1,5 @@
 #include "VulkanEngine.h"
-#include "../Scene/Scene.h" // Include Scene to get data
+#include "../../core/Scene/Scene.h" // Include Scene to get data
 
 #include <set>        // For unique queue families
 #include <cstring>    // For strcmp
@@ -8,6 +8,7 @@
 #include <fstream>    // For file operations
 #include <chrono>     // For time-based operations
 
+namespace graphics {
 
 // --- Constructor ---
 VulkanEngine::VulkanEngine(GLFWwindow* glfwWindow) : window(glfwWindow) {
@@ -58,10 +59,6 @@ void VulkanEngine::initVulkan(const Scene& scene) {
         createDepthResources();
         createFramebuffers();    // Create framebuffers after render pass and image views
 
-        // Create buffers using data from the scene
-        createVertexBuffer(scene.getVertices());
-        createIndexBuffer(scene.getIndices());
-
         createUniformBuffers();
         createDescriptorPool();
         createDescriptorSets();
@@ -110,18 +107,11 @@ void VulkanEngine::cleanup() {
     uniformBuffersMemory.clear();
     uniformBuffersMapped.clear();
 
-
     // Destroy descriptor pool (implicitly frees descriptor sets)
     if (descriptorPool != VK_NULL_HANDLE) vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 
     // Destroy descriptor set layout
     if (descriptorSetLayout != VK_NULL_HANDLE) vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-
-    // Destroy geometry buffers
-    if (indexBuffer != VK_NULL_HANDLE) vkDestroyBuffer(device, indexBuffer, nullptr);
-    if (indexBufferMemory != VK_NULL_HANDLE) vkFreeMemory(device, indexBufferMemory, nullptr);
-    if (vertexBuffer != VK_NULL_HANDLE) vkDestroyBuffer(device, vertexBuffer, nullptr);
-    if (vertexBufferMemory != VK_NULL_HANDLE) vkFreeMemory(device, vertexBufferMemory, nullptr);
 
     // Destroy synchronization objects
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
@@ -136,7 +126,6 @@ void VulkanEngine::cleanup() {
     imageAvailableSemaphores.clear();
     renderFinishedSemaphores.clear();
     inFlightFences.clear();
-
 
     // Destroy command pool (implicitly frees command buffers)
     if (commandPool != VK_NULL_HANDLE) vkDestroyCommandPool(device, commandPool, nullptr);
@@ -247,7 +236,7 @@ void VulkanEngine::drawFrame(const Scene& scene) {
 
     // 5. Reset and Record the command buffer for the current frame index.
     vkResetCommandBuffer(commandBuffers[currentFrame], 0); // Reset the buffer before re-recording
-    recordCommandBuffer(commandBuffers[currentFrame], imageIndex); // Record drawing commands
+    recordCommandBuffer(commandBuffers[currentFrame], imageIndex, scene); // Record drawing commands
 
 
     // 6. Submit the command buffer to the graphics queue.
@@ -979,99 +968,7 @@ void VulkanEngine::createFramebuffers() {
 }
 
 /**
- * @brief Creates the Vertex Buffer (VkBuffer).
- * @param sceneVertices Vector of vertex data provided by the Scene.
- *
- * Creates a device-local buffer and copies the vertex data into it using a staging buffer.
- *
- * Keywords: VkBuffer, Vertex Buffer Object (VBO), Staging Buffer, Device Local Memory
- */
-void VulkanEngine::createVertexBuffer(const std::vector<Vertex>& sceneVertices) {
-    if (sceneVertices.empty()) {
-        throw std::runtime_error("Cannot create vertex buffer, vertex data is empty!");
-    }
-    VkDeviceSize bufferSize = sizeof(sceneVertices[0]) * sceneVertices.size();
-
-    // 1. Create Staging Buffer (CPU-visible memory)
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    VulkanUtils::createBuffer(physicalDevice, device, bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT, // Usage: Source for transfer
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, // CPU visible & coherent
-        stagingBuffer, stagingBufferMemory);
-
-    // 2. Map staging buffer memory and copy vertex data into it
-    void* data;
-    // Map the whole buffer memory range
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, sceneVertices.data(), (size_t)bufferSize); // Copy data from vector
-    vkUnmapMemory(device, stagingBufferMemory); // Unmap (coherent means no explicit flush needed)
-
-    // 3. Create Vertex Buffer (GPU-local memory)
-    VulkanUtils::createBuffer(physicalDevice, device, bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, // Usage: Destination for transfer + Vertex buffer
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, // Optimal GPU memory
-        vertexBuffer, vertexBufferMemory);
-
-    // 4. Copy data from staging buffer to vertex buffer using the utility function
-    VulkanUtils::copyBuffer(device, commandPool, graphicsQueue, stagingBuffer, vertexBuffer, bufferSize);
-
-    // 5. Destroy the staging buffer and its memory (no longer needed)
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
-
-     std::cout << "Vertex Buffer Created (" << sceneVertices.size() << " vertices)." << std::endl;
-}
-
-/**
- * @brief Creates the Index Buffer (VkBuffer).
- * @param sceneIndices Vector of index data provided by the Scene.
- *
- * Creates a device-local buffer and copies the index data into it using a staging buffer.
- * Also stores the index count for use in draw calls.
- *
- * Keywords: VkBuffer, Index Buffer Object (IBO), Element Buffer, Staging Buffer
- */
-void VulkanEngine::createIndexBuffer(const std::vector<uint32_t>& sceneIndices) {
-     if (sceneIndices.empty()) {
-        throw std::runtime_error("Cannot create index buffer, index data is empty!");
-    }
-    VkDeviceSize bufferSize = sizeof(sceneIndices[0]) * sceneIndices.size();
-    indexCount = static_cast<uint32_t>(sceneIndices.size()); // Store count for drawing
-
-    // 1. Create Staging Buffer
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    VulkanUtils::createBuffer(physicalDevice, device, bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        stagingBuffer, stagingBufferMemory);
-
-    // 2. Map and Copy data
-    void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, sceneIndices.data(), (size_t)bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    // 3. Create Index Buffer
-    VulkanUtils::createBuffer(physicalDevice, device, bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, // Usage: Destination + Index buffer
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        indexBuffer, indexBufferMemory);
-
-    // 4. Copy from staging to index buffer
-    VulkanUtils::copyBuffer(device, commandPool, graphicsQueue, stagingBuffer, indexBuffer, bufferSize);
-
-    // 5. Destroy staging buffer
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
-
-     std::cout << "Index Buffer Created (" << indexCount << " indices)." << std::endl;
-
-}
-
-/**
- * @brief Creates Uniform Buffers (VkBuffer).
+ * @brief Creates the Uniform Buffers (VkBuffer).
  *
  * Creates one UBO for each frame in flight. These buffers are host-visible and
  * persistently mapped for efficient updates from the CPU each frame.
@@ -1272,37 +1169,47 @@ void VulkanEngine::createSyncObjects() {
  *
  * Keywords: UBO Update, Model View Projection (MVP), glm::lookAt, glm::perspective
  */
+// TODO: Update this with matrices and camera
 void VulkanEngine::updateUniformBuffer(uint32_t currentImageIndex, const Scene& scene) {
-    // --- Calculate MVP matrices ---
+    static auto startTime = std::chrono::high_resolution_clock::now();
+
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+    // Get the main mesh's transform information
+    glm::mat4 model = scene.getMainMeshTransform();
+    glm::vec3 position = scene.getMainMeshPosition();
+    glm::vec3 rotation = scene.getMainMeshRotation();
+
+    // Create view matrix
+    glm::mat4 view = glm::lookAt(
+        glm::vec3(2.0f, 2.0f, 2.0f),  // Camera position
+        glm::vec3(0.0f, 0.0f, 0.0f),  // Look at point
+        glm::vec3(0.0f, 0.0f, 1.0f)   // Up vector
+    );
+
+    // Create projection matrix
+    glm::mat4 proj = glm::perspective(
+        glm::radians(45.0f),  // Field of view
+        swapChainExtent.width / (float)swapChainExtent.height,  // Aspect ratio
+        0.1f,  // Near plane
+        10.0f  // Far plane
+    );
+
+    // Vulkan's coordinate system has Y pointing down, so we need to flip Y
+    proj[1][1] *= -1;
+
+    // Create MVP matrix
     UniformBufferObject ubo{};
+    ubo.model = model;
+    ubo.view = view;
+    ubo.proj = proj;
 
-    // Model matrix: Get the obj's current position from the scene
-    ubo.model = glm::translate(glm::mat4(1.0f), scene.getObjPosition());
-    // Optional: Add rotation or scaling here if needed
-    ubo.model = glm::rotate(ubo.model, scene.getObjRotation().x, glm::vec3(1.0f, 0.0f, 0.0f));
-    ubo.model = glm::rotate(ubo.model, scene.getObjRotation().y, glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.model = glm::rotate(ubo.model, scene.getObjRotation().z, glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-    // View matrix: Position the camera (fixed position looking at the origin)
-    ubo.view = glm::lookAt(glm::vec3(0.0f, 4.0f, 10.0f), // Camera Position (adjust Z for distance)
-                           glm::vec3(0.0f, 0.0f, 0.0f),  // Target Position (center of scene)
-                           glm::vec3(0.0f, 1.0f, 0.0f)); // Up vector (Y is up)
-
-    // Projection matrix: Perspective projection
-    ubo.proj = glm::perspective(glm::radians(45.0f), // Vertical field-of-view
-                                swapChainExtent.width / (float)swapChainExtent.height, // Aspect ratio
-                                0.1f,  // Near clipping plane
-                                20.0f); // Far clipping plane (adjust based on room size)
-
-    // GLM correction for Vulkan's coordinate system:
-    // Vulkan's clip space Y coordinate is inverted compared to OpenGL's.
-    // Flipping the sign of the Y scaling factor in the projection matrix corrects this.
-    ubo.proj[1][1] *= -1;
-
-    // --- Copy data to the mapped buffer ---
-    // uniformBuffersMapped[currentImageIndex] points directly to the UBO memory for this frame.
-    memcpy(uniformBuffersMapped[currentImageIndex], &ubo, sizeof(ubo));
+    // Copy data to the mapped buffer
+    void* data;
+    vkMapMemory(device, uniformBuffersMemory[currentImageIndex], 0, sizeof(ubo), 0, &data);
+    memcpy(data, &ubo, sizeof(ubo));
+    vkUnmapMemory(device, uniformBuffersMemory[currentImageIndex]);
 }
 
 /**
@@ -1315,7 +1222,7 @@ void VulkanEngine::updateUniformBuffer(uint32_t currentImageIndex, const Scene& 
  *
  * Keywords: vkCmdBeginRenderPass, vkCmdBindPipeline, vkCmdBindDescriptorSets, vkCmdBindVertexBuffers, vkCmdBindIndexBuffer, vkCmdDrawIndexed, Command Buffer Recording
  */
-void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const Scene& scene) {
     // --- Begin Command Buffer Recording ---
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1368,28 +1275,36 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     // --- Bind Buffers ---
-    // Bind Vertex Buffer
-    VkBuffer vertexBuffers[] = {vertexBuffer};
-    VkDeviceSize offsets[] = {0}; // Starting offset in the buffer
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets); // Bind to binding point 0
+    // Get the main mesh from the scene
+    auto mainMesh = scene.getMainMesh();
+    if (mainMesh) {
+        // Get the geometry buffer from the mesh
+        auto geometryBuffer = dynamic_cast<VulkanGeometryBuffer*>(mainMesh->getBuffer());
+        if (geometryBuffer) {
+            // Bind Vertex Buffer
+            VkBuffer vertexBuffers[] = {geometryBuffer->getVertexBuffer()};
+            VkDeviceSize offsets[] = {0}; // Starting offset in the buffer
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets); // Bind to binding point 0
 
-    // Bind Index Buffer
-    // VK_INDEX_TYPE_UINT32 because our indices vector uses uint32_t
-    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            // Bind Index Buffer
+            // VK_INDEX_TYPE_UINT32 because our indices vector uses uint32_t
+            vkCmdBindIndexBuffer(commandBuffer, geometryBuffer->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-    // --- Bind Descriptor Sets ---
-    // Bind the descriptor set for the current frame (containing the updated UBO)
-    // Binds set `descriptorSets[currentFrame]` to set index 0 for the graphics pipeline.
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+            // --- Bind Descriptor Sets ---
+            // Bind the descriptor set for the current frame (containing the updated UBO)
+            // Binds set `descriptorSets[currentFrame]` to set index 0 for the graphics pipeline.
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
-    // --- Issue Draw Call ---
-    // Draw the indexed geometry.
-    // indexCount: Number of indices to draw (retrieved when index buffer was created).
-    // instanceCount: 1 (not using instancing).
-    // firstIndex: 0 (start at the beginning of the index buffer).
-    // vertexOffset: 0 (add to vertex index before indexing into vertex buffer).
-    // firstInstance: 0 (offset for instanced rendering).
-    vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+            // --- Issue Draw Call ---
+            // Draw the indexed geometry.
+            // indexCount: Number of indices to draw (retrieved from geometry buffer).
+            // instanceCount: 1 (not using instancing).
+            // firstIndex: 0 (start at the beginning of the index buffer).
+            // vertexOffset: 0 (add to vertex index before indexing into vertex buffer).
+            // firstInstance: 0 (offset for instanced rendering).
+            vkCmdDrawIndexed(commandBuffer, geometryBuffer->getIndexCount(), 1, 0, 0, 0);
+        }
+    }
 
     // --- End Render Pass ---
     vkCmdEndRenderPass(commandBuffer);
@@ -1730,3 +1645,5 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanEngine::debugCallback(
     // Must return VK_FALSE. Returning VK_TRUE would abort the Vulkan call that triggered the callback.
     return VK_FALSE;
 }
+
+} // namespace graphics
