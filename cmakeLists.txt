@@ -104,13 +104,14 @@ set(SOURCE_FILES
     src/core/camera/Camera.cpp
     
     # Geometry
-    # src/geometry/Mesh/Mesh.cpp
-    # src/geometry/Geometry/Geometry.cpp
+    src/geometry/mesh/Mesh.cpp
+    src/geometry/Geometry.cpp
     # src/geometry/loaders/ObjLoader.cpp
     
     # Renderer
     src/renderer/vulkanEngine/VulkanEngine.cpp
     src/renderer/vulkanUtils/VulkanUtils.cpp
+    src/renderer/vulkanUtils/VulkanGeometryBuffer.cpp
     
     # Window
     src/window/Window.cpp

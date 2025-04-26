@@ -108,6 +108,12 @@ public:
      * @brief Clears all geometry data
      */
     void clearGeometry();
+
+        /**
+     * @brief Gets the buffer
+     * @return The buffer
+     */
+    std::unique_ptr<IGeometryBuffer>& getBuffer();
     
     /**
      * @brief Gets the number of vertices

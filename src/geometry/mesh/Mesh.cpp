@@ -52,4 +52,8 @@ void Mesh::clearGeometry() {
     needsBufferUpdate_ = true;
 }
 
+std::unique_ptr<IGeometryBuffer>& Mesh::getBuffer() {
+    return buffer_;
+}
+
 } // namespace graphics 

@@ -35,7 +35,7 @@ public:
     void run() {
         initWindow();       // Setup GLFW window
         initScene();        // Initialize scene data (geometry, physics state)
-        initVulkan();       // Initialize Vulkan engine using window and scene data
+        // initVulkan();       // Initialize Vulkan engine using window and scene data
         mainLoop();         // Enter the main update/render loop
         cleanup();          // Release resources
     }

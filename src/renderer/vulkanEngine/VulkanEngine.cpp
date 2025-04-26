@@ -1279,7 +1279,7 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     auto mainMesh = scene.getMainMesh();
     if (mainMesh) {
         // Get the geometry buffer from the mesh
-        auto geometryBuffer = dynamic_cast<VulkanGeometryBuffer*>(mainMesh->getBuffer());
+        auto geometryBuffer = dynamic_cast<VulkanGeometryBuffer*>(mainMesh->getBuffer().get());
         if (geometryBuffer) {
             // Bind Vertex Buffer
             VkBuffer vertexBuffers[] = {geometryBuffer->getVertexBuffer()};
