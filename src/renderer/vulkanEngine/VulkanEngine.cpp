@@ -1217,34 +1217,36 @@ void VulkanEngine::updateUniformBuffer(uint32_t currentImageIndex, const Scene& 
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
+    
+    UniformBufferObject ubo{};
+
     // Get the main mesh's transform information
-    glm::mat4 model = scene.getMainMeshTransform();
-    glm::vec3 position = scene.getMainMeshPosition();
-    glm::vec3 rotation = scene.getMainMeshRotation();
+    ubo.model = scene.getMainMeshTransform();
+    // glm::vec3 position = scene.getMainMeshPosition();
+    // glm::vec3 rotation = scene.getMainMeshRotation();
 
     // Create view matrix
-    glm::mat4 view = glm::lookAt(
-        glm::vec3(0.0f, 0.0f, 5.0f),  // Camera position
+    ubo.view = glm::lookAt(
+        glm::vec3(0.0f, 4.0f, 10.0f),  // Camera position
         glm::vec3(0.0f, 0.0f, 0.0f),  // Look at point
         glm::vec3(0.0f, 1.0f, 0.0f)   // Up vector
     );
 
     // Create projection matrix
-    glm::mat4 proj = glm::perspective(
+    ubo.proj = glm::perspective(
         glm::radians(45.0f),  // Field of view
         swapChainExtent.width / (float)swapChainExtent.height,  // Aspect ratio
         0.1f,  // Near plane
-        10.0f  // Far plane
+        20.0f  // Far plane
     );
+    
+    // std::cout << view[0].x << ',' << view[0].y << ',' << view[0].z << ',' << view[0].w << std::endl;
+    // std::cout << view[1].x << ',' << view[1].y << ',' << view[1].z << ',' << view[1].w << std::endl;
+    // std::cout << view[2].x << ',' << view[2].y << ',' << view[2].z << ',' << view[2].w << std::endl;
+    // std::cout << view[3].x << ',' << view[3].y << ',' << view[3].z << ',' << view[3].w << std::endl;
 
     // Vulkan's coordinate system has Y pointing down, so we need to flip Y
-    proj[1][1] *= -1;
-
-    // Create MVP matrix
-    UniformBufferObject ubo{};
-    ubo.model = model;
-    ubo.view = view;
-    ubo.proj = proj;
+    ubo.proj[1][1] *= -1;
 
     // Copy data directly to the already mapped buffer
     memcpy(uniformBuffersMapped[currentImageIndex], &ubo, sizeof(ubo));

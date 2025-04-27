@@ -28,7 +28,8 @@ void Scene::init(const std::string& modelPath, std::unique_ptr<IGeometryBuffer> 
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     
-    if (!ObjLoader::loadObj(modelPath, 0.05f, vertices, indices)) {
+    float scale = 0.05;
+    if (!ObjLoader::loadObj(modelPath, scale, vertices, indices)) {
         std::cerr << "Failed to load model: " << modelPath << std::endl;
         throw std::runtime_error("Failed to load model");
     }
