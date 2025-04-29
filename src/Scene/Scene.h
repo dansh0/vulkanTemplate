@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../objects/mesh/Mesh.h" // Include Vertex definition
 #include "../objects/loaders/ObjLoader.h" // Include OBJ loader
 #include <glm/glm.hpp>
 #include <vector>

@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../objects/mesh/Mesh.h" // Include Vertex definition
+#include "../common/Vertex.h" // Include Vertex definition
 #include "VulkanUtils.h"      // Include helper functions and structs
 
 #include <vector>

@@ -112,6 +112,7 @@ set(SOURCE_FILES
     src/scene/Scene.cpp
     src/objects/shapes/Sphere.cpp
     src/window/Window.cpp
+    src/common/Object.cpp
     libraries/tiny_obj_loader/tiny_obj_loader.cc  # Add tiny_obj_loader implementation
 )
 

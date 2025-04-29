@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../mesh/Mesh.h"       // Include the Vertex definition
+#include "../../common/Vertex.h"       // Include the Vertex definition
 #include <vector>
 #include <cstdint>      // For uint32_t
 

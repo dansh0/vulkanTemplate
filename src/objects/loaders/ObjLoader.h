@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../mesh/Mesh.h"
+#include "../../common/Vertex.h"
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include <string>
 #include <vector>

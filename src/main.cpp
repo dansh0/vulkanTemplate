@@ -13,6 +13,10 @@
 #include "scene/Scene.h"              // The scene logic and data
 #include "window/Window.h"            // Window management
 
+// Common includes
+#include "common/Vertex.h"
+#include "common/Object.h"
+
 // --- Constants ---
 const std::string APP_NAME = "Obj Viewer";
 
