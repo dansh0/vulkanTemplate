@@ -1,6 +1,6 @@
 #include "VulkanUtils.h"
 #include <vulkan/vulkan.h> // Include full Vulkan header for implementations
-#include "../VulkanEngine/VulkanEngine.h" // Needed for VulkanEngine::debugCallback
+#include "VulkanEngine.h" // Needed for VulkanEngine::debugCallback
 #include <stdexcept>
 #include <fstream>
 #include <iostream>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Geometry/Mesh.h" // Include Vertex definition
-#include "../Geometry/ObjLoader.h" // Include OBJ loader
+#include "../objects/mesh/Mesh.h" // Include Vertex definition
+#include "../objects/loaders/ObjLoader.h" // Include OBJ loader
 #include <glm/glm.hpp>
 #include <vector>
 #include <cstdint> // For uint32_t
@@ -35,6 +35,13 @@ public:
      * This method moves objects, checks for collisions, and applies effects like gravity (optional).
      */
     void update(float deltaTime);
+
+    /**
+     * @brief Cleans up the scene.
+     *
+     * Keywords: Scene Cleanup, Resource Release
+     */
+    void cleanup();
 
     /**
      * @brief Gets the current position of the bouncing object.

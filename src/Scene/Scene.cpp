@@ -67,6 +67,15 @@ void Scene::updatePhysics(float deltaTime) {
     // objVelocity.y -= gravity * deltaTime * 0.2f; // Apply gravity (scaled down for effect)
 }
 
+/**
+ * @brief Cleans up the scene.
+ *
+ * Keywords: Scene Cleanup, Resource Release
+ */
+void Scene::cleanup() {
+    // TODO: Implement cleanup
+}
+
 
 // --- Accessors ---
 

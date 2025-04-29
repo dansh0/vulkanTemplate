@@ -107,11 +107,11 @@ endif()
 # --- Project Sources ---
 set(SOURCE_FILES
     src/main.cpp
-    src/VulkanEngine/VulkanEngine.cpp
-    src/VulkanEngine/VulkanUtils.cpp
-    src/Scene/Scene.cpp
-    src/Geometry/Sphere.cpp
-    src/Window/Window.cpp
+    src/renderer/VulkanEngine.cpp
+    src/renderer/VulkanUtils.cpp
+    src/scene/Scene.cpp
+    src/objects/shapes/Sphere.cpp
+    src/window/Window.cpp
     libraries/tiny_obj_loader/tiny_obj_loader.cc  # Add tiny_obj_loader implementation
 )
 

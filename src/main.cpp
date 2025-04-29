@@ -9,9 +9,9 @@
 #include <GLFW/glfw3.h>     // For windowing and input
 
 // Project Includes
-#include "VulkanEngine/VulkanEngine.h" // The core Vulkan logic wrapper
-#include "Scene/Scene.h"              // The scene logic and data
-#include "Window/Window.h"            // Window management
+#include "renderer/VulkanEngine.h" // The core Vulkan logic wrapper
+#include "scene/Scene.h"              // The scene logic and data
+#include "window/Window.h"            // Window management
 
 // --- Constants ---
 const std::string APP_NAME = "Obj Viewer";
@@ -120,6 +120,10 @@ private:
      */
     void cleanup() {
         std::cout << "Starting Application Cleanup..." << std::endl;
+
+        // Scene cleanup
+        scene.cleanup();
+
         // Vulkan engine cleanup is crucial and should happen before window destruction
         if (vulkanEngine) {
             // The VulkanEngine destructor calls vkDeviceWaitIdle and its cleanup method

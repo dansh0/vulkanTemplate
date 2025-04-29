@@ -1,5 +1,5 @@
 #include "VulkanEngine.h"
-#include "../Scene/Scene.h" // Include Scene to get data
+#include "../scene/Scene.h" // Include Scene to get data
 
 #include <set>        // For unique queue families
 #include <cstring>    // For strcmp
