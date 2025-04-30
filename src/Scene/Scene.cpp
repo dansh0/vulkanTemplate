@@ -1,5 +1,7 @@
 #include "Scene.h"
+#include "../objects/geometry/Geometry.h"
 #include <iostream>
+#include <memory>
 
 /**
  * @brief Initializes the scene. Generates the sphere mesh and sets the initial radius.
@@ -7,6 +9,13 @@
  * Keywords: Scene Initialization, Mesh Generation
  */
 void Scene::init(const std::string& modelPath, const float scale) {
+    // Make new geometry object, assign the loaded obj to it, pass the geometry to a mesh/object, store as a child on the scene
+    // Requires a mesh class that can take a geometry and display it
+    // Requires a parent-child relationship between the scene and the object
+    // Requires changes to loadObj to handle the geometry object
+    // Also consider if loadObj should generate the geometry object or if that should be done in the scene
+    // std::unique_ptr<Geometry> geometry = std::make_unique<Geometry>();
+
     // Load the model from OBJ file
     if (!ObjLoader::loadObj(modelPath, scale, vertices, indices)) {
         std::cerr << "Failed to load model: " << modelPath << std::endl;
@@ -14,7 +23,7 @@ void Scene::init(const std::string& modelPath, const float scale) {
         throw std::runtime_error("Failed to load model");
     }
 
-    // Initialize physics state
+    // Initialize physics state - REPLACE WITH TRANSFORMATION MATRIX
     objPosition = glm::vec3(0.0f, -4.0f, 0.0f);
     objVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
     objRotation = glm::vec3(0.0f, 0.0f, 0.0f);
